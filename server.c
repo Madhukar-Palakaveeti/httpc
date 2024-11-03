@@ -2,6 +2,7 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -45,10 +46,26 @@ int main() {
     printf("ERROR: Server not accepting!\n");
     exit(EXIT_FAILURE);
   }
-  char hello[] = "Hello World!\n";
+  // char hello[] = "Hello World!\n";
 
   printf("Successfully connected to the server\n");
-  write(connfd, hello, sizeof(hello));
+
+  // write(connfd, "HTTP/1.1 200 OK\r\n", 18);
+  // write(connfd, "Server: Http\r\n", 15);
+  // write(connfd, "Content-Type: text/html\r\n", 26);
+  // write(connfd, "Connection: Closed\r\n", 21);
+  // write(connfd, "\r\n", 3);
+  // write(connfd, "<h1>Hello Beautiful!</h1>\n", 26);
+  char buff[128];
+  strcat(buff, "HTTP/1.1 200 OK\r\n");
+  strcat(buff, "Server: Http\r\n");
+  strcat(buff, "Content-Type: text/html\r\n");
+  strcat(buff, "Connection: Closed\r\n");
+  strcat(buff, "\r\n");
+  strcat(buff, "<h1>Hello Beautiful!</h1>\n");
+  int bufflen = strlen(buff);
+
+  write(connfd, buff, bufflen);
   close(connfd);
   close(sockfd);
   return 0;
