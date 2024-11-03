@@ -51,12 +51,6 @@ int main() {
 
   printf("Successfully connected to the server\n");
 
-  // write(connfd, "HTTP/1.1 200 OK\r\n", 18);
-  // write(connfd, "Server: Http\r\n", 15);
-  // write(connfd, "Content-Type: text/html\r\n", 26);
-  // write(connfd, "Connection: Closed\r\n", 21);
-  // write(connfd, "\r\n", 3);
-  // write(connfd, "<h1>Hello Beautiful!</h1>\n", 26);
   char buff[128];
   strcat(buff, "HTTP/1.1 200 OK\r\n");
   strcat(buff, "Server: Http\r\n");
