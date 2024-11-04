@@ -50,16 +50,22 @@ int main() {
   // char hello[] = "Hello World!\n";
 
   printf("Successfully connected to the server\n");
+  char req[1024];
+  size_t req_len = sizeof(req) - 1;
+  ssize_t bytes_read = read(connfd, req, req_len);
+  req[bytes_read] = '\0';
+  printf("%s\n", req);
 
   char buff[128];
-  strcat(buff, "HTTP/1.1 200 OK\r\n");
-  strcat(buff, "Server: Http\r\n");
-  strcat(buff, "Content-Type: text/html\r\n");
-  strcat(buff, "Connection: Closed\r\n");
-  strcat(buff, "\r\n");
-  strcat(buff, "<h1>Hello Beautiful!</h1>\n");
-  int bufflen = strlen(buff);
+  snprintf(buff, sizeof(buff),
+           "HTTP/1.1 200 OK\r\n"
+           "Server: Http\r\n"
+           "Content-Type: text/html\r\n"
+           "Connection: Closed\r\n"
+           "\r\n"
+           "<h1>Hello Beautiful!</h1>\n");
 
+  int bufflen = strlen(buff);
   write(connfd, buff, bufflen);
   close(connfd);
   close(sockfd);
