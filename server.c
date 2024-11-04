@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,21 @@
 #include <sys/types.h>
 
 #define PORT 6969
+typedef struct {
+  char *first_line;
+  char *method;
+  char *path;
+} RequestParams;
+
+RequestParams get_req_params(char *req_buf, size_t req_len) {
+  RequestParams request_params;
+
+  request_params.first_line = strtok(req_buf, "\n");
+  request_params.method = strtok(request_params.first_line, " ");
+  request_params.path = strtok(NULL, " ");
+
+  return request_params;
+}
 
 int main() {
   int sockfd, connfd, cli_len;
@@ -41,20 +57,24 @@ int main() {
 
   printf("Listening on Port 6969!\n");
   cli_len = sizeof(cli_addr);
-
+  // for (;;) {
   connfd = accept(sockfd, (struct sockaddr *)&cli_addr, &cli_len);
   if (connfd < 0) {
     printf("ERROR: Server not accepting!\n");
     exit(EXIT_FAILURE);
   }
-  // char hello[] = "Hello World!\n";
 
   printf("Successfully connected to the server\n");
   char req[1024];
   size_t req_len = sizeof(req) - 1;
   ssize_t bytes_read = read(connfd, req, req_len);
   req[bytes_read] = '\0';
-  printf("%s\n", req);
+  // printf("%s\n", req);
+
+  RequestParams request_params = get_req_params(req, req_len);
+
+  printf("HTTP VERB: %s\n", request_params.method);
+  printf("Path: %s\n", request_params.path);
 
   char buff[128];
   snprintf(buff, sizeof(buff),
@@ -68,6 +88,7 @@ int main() {
   int bufflen = strlen(buff);
   write(connfd, buff, bufflen);
   close(connfd);
+
   close(sockfd);
   return 0;
 }
