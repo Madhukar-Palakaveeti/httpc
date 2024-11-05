@@ -31,9 +31,9 @@ void build_http_response(char *res_buf, RequestParams *request_params) {
   char *path = request_params->path;
 
   if (strcmp(http_verb, "GET") == 0) {
-    snprintf(res_buf, 1025,
-             "http/1.1 200 OK\r\n"
-             "server: http\r\n"
+    snprintf(res_buf, 1024,
+             "HTTP/1.1 200 OK\r\n"
+             "server: Http\r\n"
              "content-type: text/html\r\n"
              "connection: closed\r\n"
              "\r\n"
@@ -41,7 +41,7 @@ void build_http_response(char *res_buf, RequestParams *request_params) {
   }
 
   else {
-    snprintf(res_buf, 1025,
+    snprintf(res_buf, 1024,
              "HTTP/1.1 201 Created\r\n"
              "Server: Http\r\n"
              "Content-Type: text/html\r\n"
@@ -101,14 +101,14 @@ int main() {
 
     char res[1024];
     if (strcmp(http_verb, "GET") == 0 && strcmp(path, "/quit") == 0) {
-      snprintf(res, sizeof(res),
-               "http/1.1 200 ok\r\n"
-               "server: http\r\n"
+      snprintf(res, 1024,
+               "HTTP/1.1 200 ok\r\n"
+               "server: Http\r\n"
                "content-type: text/html\r\n"
                "connection: closed\r\n"
                "\r\n"
                "Connection closed from server side\n");
-      write(connfd, res, sizeof(res));
+      write(connfd, res, strlen(res));
       close(connfd);
       printf("Connection closed!\n");
       break;
