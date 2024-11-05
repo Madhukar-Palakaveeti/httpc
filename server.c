@@ -26,6 +26,30 @@ RequestParams get_req_params(char *req_buf, size_t req_len) {
   return request_params;
 }
 
+void build_http_response(char *res_buf, RequestParams *request_params) {
+  char *http_verb = request_params->method;
+  char *path = request_params->path;
+
+  if (strcmp(http_verb, "GET") == 0) {
+    snprintf(res_buf, 1025,
+             "http/1.1 200 OK\r\n"
+             "server: http\r\n"
+             "content-type: text/html\r\n"
+             "connection: closed\r\n"
+             "\r\n"
+             "<h1>Hello Beautiful!</h1>\n");
+  }
+
+  else {
+    snprintf(res_buf, 1025,
+             "HTTP/1.1 201 Created\r\n"
+             "Server: Http\r\n"
+             "Content-Type: text/html\r\n"
+             "Connection: Closed\r\n"
+             "\r\n"
+             "{'status' : 'Item Created'}\n");
+  }
+}
 int main() {
   int sockfd, connfd, cli_len;
   struct sockaddr_in my_addr, cli_addr;
@@ -65,56 +89,34 @@ int main() {
     }
 
     printf("Successfully connected to the server\n");
+
     char req[1024];
     size_t req_len = sizeof(req) - 1;
     ssize_t bytes_read = read(connfd, req, req_len);
     req[bytes_read] = '\0';
-    // printf("%s\n", req);
 
     RequestParams request_params = get_req_params(req, req_len);
-
-    // printf("HTTP VERB: %s\n", request_params.method);
-    // printf("Path: %s\n", request_params.path);
     char *http_verb = request_params.method;
     char *path = request_params.path;
 
-    char buff[1024];
+    char res[1024];
     if (strcmp(http_verb, "GET") == 0 && strcmp(path, "/quit") == 0) {
-      snprintf(buff, sizeof(buff),
+      snprintf(res, sizeof(res),
                "http/1.1 200 ok\r\n"
                "server: http\r\n"
                "content-type: text/html\r\n"
                "connection: closed\r\n"
                "\r\n"
                "Connection closed from server side\n");
-      printf("Connection closed!\n");
-      write(connfd, buff, strlen(buff));
+      write(connfd, res, sizeof(res));
       close(connfd);
+      printf("Connection closed!\n");
       break;
     }
 
-    if (strcmp(http_verb, "GET") == 0) {
-      snprintf(buff, sizeof(buff),
-               "http/1.1 200 ok\r\n"
-               "server: http\r\n"
-               "content-type: text/html\r\n"
-               "connection: closed\r\n"
-               "\r\n"
-               "<h1>Hello Beautiful!</h1>\n");
-    }
-
-    else {
-      snprintf(buff, sizeof(buff),
-               "HTTP/1.1 201 Created\r\n"
-               "Server: Http\r\n"
-               "Content-Type: text/html\r\n"
-               "Connection: Closed\r\n"
-               "\r\n"
-               "{'status' : 'Item Created'}\n");
-    }
-
-    int bufflen = strlen(buff);
-    write(connfd, buff, bufflen);
+    build_http_response(res, &request_params);
+    int res_len = strlen(res);
+    write(connfd, res, res_len);
     close(connfd);
   }
   close(sockfd);

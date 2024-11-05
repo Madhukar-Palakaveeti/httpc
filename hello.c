@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 int main() {
-  printf("Hello World!");
+  char a[1024];
+  printf("%d", sizeof(a));
   return 0;
 }
