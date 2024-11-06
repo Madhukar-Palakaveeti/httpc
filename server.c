@@ -9,11 +9,20 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include <cjson/cJSON.h>
+
 #define PORT 6969
+typedef struct {
+  int id;
+  char *name;
+  double price;
+} Data;
+
 typedef struct {
   char *first_line;
   char *method;
   char *path;
+  Data *body;
 } RequestParams;
 
 RequestParams get_req_params(char *req_buf, size_t req_len) {
@@ -24,6 +33,24 @@ RequestParams get_req_params(char *req_buf, size_t req_len) {
   request_params.path = strtok(NULL, " ");
 
   return request_params;
+}
+
+int insert_into_db(const char *req_body, Data *data) {
+  cJSON *json = cJSON_Parse(req_body);
+  if (json == NULL) {
+    return -1;
+  }
+
+  cJSON *id = cJSON_GetObjectItem(json, "id");
+  cJSON *name = cJSON_GetObjectItem(json, "name");
+  cJSON *price = cJSON_GetObjectItem(json, "price");
+
+  data->id = id->valueint;
+  data->name = name->valuestring;
+  data->price = price->valuedouble;
+
+  cJSON_Delete(json);
+  return (data->id);
 }
 
 void build_http_response(char *res_buf, RequestParams *request_params) {
@@ -50,6 +77,7 @@ void build_http_response(char *res_buf, RequestParams *request_params) {
              "{'status' : 'Item Created'}\n");
   }
 }
+
 int main() {
   int sockfd, connfd, cli_len;
   struct sockaddr_in my_addr, cli_addr;
@@ -99,6 +127,10 @@ int main() {
     char *http_verb = request_params.method;
     char *path = request_params.path;
 
+    Data data;
+    const char *json_string = "{\"id\": 1, \"name\": \"pen\", \"price\": 50}";
+    int x = insert_into_db(json_string, &data);
+    printf("Worked-> %d", x);
     char res[1024];
     if (strcmp(http_verb, "GET") == 0 && strcmp(path, "/quit") == 0) {
       snprintf(res, 1024,
@@ -113,7 +145,6 @@ int main() {
       printf("Connection closed!\n");
       break;
     }
-
     build_http_response(res, &request_params);
     int res_len = strlen(res);
     write(connfd, res, res_len);
