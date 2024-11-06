@@ -22,16 +22,20 @@ typedef struct {
   char *first_line;
   char *method;
   char *path;
-  Data *body;
+  char *body;
 } RequestParams;
 
 RequestParams get_req_params(char *req_buf, size_t req_len) {
   RequestParams request_params;
 
   request_params.first_line = strtok(req_buf, "\n");
+  for (int i = 0; i < 6; i++) {
+    strtok(NULL, "\n");
+  }
+  request_params.body = strtok(NULL, "\n");
+
   request_params.method = strtok(request_params.first_line, " ");
   request_params.path = strtok(NULL, " ");
-
   return request_params;
 }
 
@@ -53,9 +57,11 @@ int insert_into_db(const char *req_body, Data *data) {
   return (data->id);
 }
 
-void build_http_response(char *res_buf, RequestParams *request_params) {
+void build_http_response(char *res_buf, RequestParams *request_params,
+                         int res_id) {
   char *http_verb = request_params->method;
   char *path = request_params->path;
+  char *body = request_params->body;
 
   if (strcmp(http_verb, "GET") == 0) {
     snprintf(res_buf, 1024,
@@ -71,10 +77,11 @@ void build_http_response(char *res_buf, RequestParams *request_params) {
     snprintf(res_buf, 1024,
              "HTTP/1.1 201 Created\r\n"
              "Server: Http\r\n"
-             "Content-Type: text/html\r\n"
+             "Content-Type: text/json\r\n"
              "Connection: Closed\r\n"
              "\r\n"
-             "{'status' : 'Item Created'}\n");
+             "{'status' : 'Item Created', 'id' : %d}\n",
+             res_id);
   }
 }
 
@@ -126,12 +133,13 @@ int main() {
     RequestParams request_params = get_req_params(req, req_len);
     char *http_verb = request_params.method;
     char *path = request_params.path;
+    const char *body = request_params.body;
 
     Data data;
-    const char *json_string = "{\"id\": 1, \"name\": \"pen\", \"price\": 50}";
-    int x = insert_into_db(json_string, &data);
-    printf("Worked-> %d", x);
+    int res_id = 0;
     char res[1024];
+
+    // Graceful exit
     if (strcmp(http_verb, "GET") == 0 && strcmp(path, "/quit") == 0) {
       snprintf(res, 1024,
                "HTTP/1.1 200 ok\r\n"
@@ -145,7 +153,12 @@ int main() {
       printf("Connection closed!\n");
       break;
     }
-    build_http_response(res, &request_params);
+
+    if (strcmp(http_verb, "POST") == 0 && body[0] != '\0') {
+      res_id = insert_into_db(body, &data);
+    }
+
+    build_http_response(res, &request_params, res_id);
     int res_len = strlen(res);
     write(connfd, res, res_len);
     close(connfd);
