@@ -1,0 +1,2 @@
+Check for proper names in the insert_to_db function after parsing the req_body
+make a string for the http_header instead of writing every time
