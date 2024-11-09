@@ -102,7 +102,7 @@ void build_http_response(char *res_buf, RequestParams *request_params,
     }
   }
 
-  else {
+  else if (strcmp(http_verb, "POST") == 0) {
     snprintf(res_buf, 1024,
              "HTTP/1.1 201 Created\r\n"
              "Server: Http\r\n"
@@ -111,6 +111,18 @@ void build_http_response(char *res_buf, RequestParams *request_params,
              "\r\n"
              "{'status' : 'Item Created', 'id' : %d}\n",
              res_id);
+  } else {
+    int idpath = atoi(path + 1);
+    data[idpath].id = 0;
+    data[idpath].name = NULL;
+    free(data[idpath].name);
+    data[idpath].price = 0;
+    snprintf(res_buf, 1024,
+             "HTTP/1.1 204 No Content\r\n"
+             "Server: Http\r\n"
+             "Content-Type: text/json\r\n"
+             "Connection: Closed\r\n"
+             "\r\n");
   }
 }
 
@@ -203,6 +215,7 @@ int main() {
       free(data[i].name);
     }
   }
+
   close(sockfd);
   return 0;
 }
