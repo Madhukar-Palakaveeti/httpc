@@ -1,2 +1,4 @@
 Check for proper names in the insert_to_db function after parsing the req_body
-make a string for the http_header instead of writing every time
+Make a string for the http_header instead of writing every time
+Have modular functions for each operation in the main method, like we have build_response, I need to add appropriate function for the CRUD operations, just like i have insert_to_db() function, i need to combine all the CRUD operations in a single function and use that in the main one.
+Make the server into a todo-list app.

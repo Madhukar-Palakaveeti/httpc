@@ -115,9 +115,17 @@ void build_http_response(char *res_buf, RequestParams *request_params,
 
   else if (strcmp(http_verb, "PUT") == 0) {
     int idpath = atoi(path + 1);
-    if (data[idpath].id) {
-      printf("The id to update is : %d", idpath);
-    }
+    // if (data[idpath].id) {
+    printf("The id to update is : %d", idpath);
+    snprintf(res_buf, 1024,
+             "HTTP/1.1 200 OK\r\n"
+             "server: Http\r\n"
+             "content-type: text/html\r\n"
+             "connection: closed\r\n"
+             "\r\n"
+             "{'id' : %d, 'name' : %s, 'price' : '%lf'}",
+             data[idpath].id, data[idpath].name, data[idpath].price);
+
   } else {
     int idpath = atoi(path + 1);
     data[idpath].id = 0;
