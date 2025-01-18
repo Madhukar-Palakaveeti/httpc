@@ -111,6 +111,13 @@ void build_http_response(char *res_buf, RequestParams *request_params,
              "\r\n"
              "{'status' : 'Item Created', 'id' : %d}\n",
              res_id);
+  }
+
+  else if (strcmp(http_verb, "PUT") == 0) {
+    int idpath = atoi(path + 1);
+    if (data[idpath].id) {
+      printf("The id to update is : %d", idpath);
+    }
   } else {
     int idpath = atoi(path + 1);
     data[idpath].id = 0;
